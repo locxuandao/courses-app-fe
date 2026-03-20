@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { courseService } from "../api/courses";
 import type { Course } from "../types";
-import {
-  BookOpen,
-  Search,
-  Filter,
-  Loader2,
-  Star,
-  User,
-  ShoppingCart,
-} from "lucide-react";
+import { BookOpen, Search, Loader2, Star, ShoppingCart } from "lucide-react";
 
 export const CourseMarketplace: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
