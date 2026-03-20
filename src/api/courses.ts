@@ -1,6 +1,18 @@
 import api from "./client";
 import type { Course } from "../types";
 
+export interface PageMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PagedResult<T> {
+  data: T[];
+  meta: PageMeta;
+}
+
 export const courseService = {
   getAll: async (): Promise<Course[]> => {
     const response = await api.get("/courses");
@@ -14,6 +26,27 @@ export const courseService = {
           : [];
     return arr.map(mapCourse);
   },
+  getAllPaged: async (page = 1, limit = 10): Promise<PagedResult<Course>> => {
+    const response = await api.get(`/courses?page=${page}&limit=${limit}`);
+    const body = response.data;
+    const arr = Array.isArray(body)
+      ? body
+      : Array.isArray(body?.data)
+        ? body.data
+        : Array.isArray(body?.courses)
+          ? body.courses
+          : [];
+    const data = arr.map(mapCourse);
+    const meta = body?.meta
+      ? {
+          total: Number(body.meta.total ?? 0),
+          page: Number(body.meta.page ?? page),
+          limit: Number(body.meta.limit ?? limit),
+          totalPages: Number(body.meta.totalPages ?? body.meta.totalPages ?? 1),
+        }
+      : { total: data.length, page, limit, totalPages: 1 };
+    return { data, meta };
+  },
   getOwn: async (authorId: string): Promise<Course[]> => {
     const response = await api.get(`/courses/author/${authorId}`);
     const d = response.data;
@@ -23,6 +56,33 @@ export const courseService = {
         ? d.data
         : (d?.courses ?? []);
     return arr.map(mapCourse);
+  },
+  getOwnPaged: async (
+    authorId: string,
+    page = 1,
+    limit = 10
+  ): Promise<PagedResult<Course>> => {
+    const response = await api.get(
+      `/courses/author/${authorId}?page=${page}&limit=${limit}`
+    );
+    const body = response.data;
+    const arr = Array.isArray(body)
+      ? body
+      : Array.isArray(body?.data)
+        ? body.data
+        : Array.isArray(body?.courses)
+          ? body.courses
+          : [];
+    const data = arr.map(mapCourse);
+    const meta = body?.meta
+      ? {
+          total: Number(body.meta.total ?? 0),
+          page: Number(body.meta.page ?? page),
+          limit: Number(body.meta.limit ?? limit),
+          totalPages: Number(body.meta.totalPages ?? body.meta.totalPages ?? 1),
+        }
+      : { total: data.length, page, limit, totalPages: 1 };
+    return { data, meta };
   },
   create: async (
     data: Omit<Course, "id" | "createdAt" | "updatedAt">

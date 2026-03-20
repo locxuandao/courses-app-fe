@@ -17,6 +17,8 @@ export const InstructorCoursesPage: React.FC = () => {
   const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
@@ -26,12 +28,14 @@ export const InstructorCoursesPage: React.FC = () => {
     content: "",
   });
 
-  const fetchCourses = async () => {
+  const fetchCourses = async (p = page) => {
     if (!user) return;
     setLoading(true);
     try {
-      const data = await courseService.getOwn(user.id);
-      setCourses(data);
+      const res = await courseService.getOwnPaged(user.id, p, 6);
+      setCourses(res.data);
+      setTotalPages(res.meta.totalPages);
+      setPage(res.meta.page);
     } catch (error) {
       console.error("Failed to fetch own courses", error);
     } finally {
@@ -40,7 +44,8 @@ export const InstructorCoursesPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCourses();
+    fetchCourses(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const handleOpenModal = (course?: Course) => {
@@ -85,6 +90,11 @@ export const InstructorCoursesPage: React.FC = () => {
         console.error("Failed to delete course", error);
       }
     }
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    await fetchCourses(newPage);
   };
 
   return (
@@ -179,6 +189,29 @@ export const InstructorCoursesPage: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination controls */}
+      {courses.length > 0 && (
+        <div className="flex items-center justify-center gap-3 mt-8">
+          <button
+            onClick={() => handlePageChange(page - 1)}
+            disabled={page <= 1}
+            className="px-3 py-2 bg-[oklch(30%_0.02_250)] rounded"
+          >
+            Previous
+          </button>
+          <div className="text-sm text-[oklch(60%_0.02_250)]">
+            Page {page} / {totalPages}
+          </div>
+          <button
+            onClick={() => handlePageChange(page + 1)}
+            disabled={page >= totalPages}
+            className="px-3 py-2 bg-[oklch(30%_0.02_250)] rounded"
+          >
+            Next
+          </button>
         </div>
       )}
 
