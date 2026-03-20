@@ -3,6 +3,10 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Allow injecting Vite env vars at build time (e.g. VITE_API_URL)
+ARG VITE_BASE_URL
+ENV VITE_BASE_URL=${VITE_BASE_URL}
+
 # Install pnpm and dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN npm install -g pnpm@latest
