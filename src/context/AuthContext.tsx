@@ -4,7 +4,7 @@ import type { User, Role } from "../types";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (accessToken: string, user: User) => void;
+  login: (accessToken: string, user: User, refreshToken?: string) => void;
   logout: () => void;
   hasRole: (role: Role | Role[]) => boolean;
 }
@@ -22,36 +22,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const token = localStorage.getItem("accessToken");
     if (savedUser && token) {
       try {
-        const parsed = JSON.parse(savedUser);
-        const normalizeRole = (r: any) => {
-          if (!r) return "STUDENT";
-          const up = String(r).toUpperCase();
-          return up === "ADMIN" || up === "INSTRUCTOR" || up === "STUDENT"
-            ? up
-            : "STUDENT";
-        };
-        parsed.role = normalizeRole(parsed.role);
-        setUser(parsed);
-      } catch (e) {
+        setUser(JSON.parse(savedUser));
+      } catch {
         setUser(null);
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (accessToken: string, userData: User) => {
-    const normalizeRole = (r: any) => {
+  const login = (accessToken: string, userData: User, refreshToken?: string) => {
+    const normalizeRole = (r: any): Role => {
       if (!r) return "STUDENT";
-      const up = String(r).toUpperCase();
-      return up === "ADMIN" || up === "INSTRUCTOR" || up === "STUDENT"
+      // Handle role as object { name: "student" } or plain string
+      const raw = typeof r === "object" ? r.name ?? "" : r;
+      const up = String(raw).toUpperCase();
+      return (up === "ADMIN" || up === "INSTRUCTOR" || up === "STUDENT"
         ? up
-        : "STUDENT";
+        : "STUDENT") as Role;
     };
-    const normalized = {
+    const normalized: User = {
       ...userData,
       role: normalizeRole(userData.role),
-    } as User;
+    };
     localStorage.setItem("accessToken", accessToken);
+    if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
     localStorage.setItem("user", JSON.stringify(normalized));
     setUser(normalized);
   };
