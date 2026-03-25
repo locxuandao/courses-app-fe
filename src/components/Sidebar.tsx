@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { BookOpen, Users, LogOut, GraduationCap, Library } from "lucide-react";
+import { Users, LogOut } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -20,33 +20,9 @@ export const Sidebar: React.FC = () => {
 
   const menuItems = [
     {
-      label: "Marketplace",
-      path: "/",
-      icon: BookOpen,
-      roles: ["ADMIN", "INSTRUCTOR", "STUDENT"],
-    },
-    {
-      label: "My Enrolled",
-      path: "/my-courses",
-      icon: Library,
-      roles: ["STUDENT"],
-    },
-    {
-      label: "Instuctor Dashboard",
-      path: "/instructor/courses",
-      icon: GraduationCap,
-      roles: ["INSTRUCTOR"],
-    },
-    {
       label: "User Management",
       path: "/admin/users",
       icon: Users,
-      roles: ["ADMIN"],
-    },
-    {
-      label: "Course Management",
-      path: "/admin/courses",
-      icon: BookOpen,
       roles: ["ADMIN"],
     },
   ];
@@ -84,14 +60,25 @@ export const Sidebar: React.FC = () => {
 
       <div className="p-4 border-t border-[oklch(30%_0.02_250)]">
         <div className="flex items-center gap-3 px-4 py-3 mb-2">
-          <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-xs">
-            {user?.name?.charAt(0) || "?"}
-          </div>
+          {user?.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt={user.name}
+              className="w-10 h-10 rounded-full border border-blue-500/30 object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm">
+              {user?.name?.charAt(0) || "?"}
+            </div>
+          )}
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-medium text-white truncate">
+            <p className="text-sm font-semibold text-white truncate">
               {user?.name}
             </p>
-            <p className="text-xs text-[oklch(60%_0.02_250)] truncate">
+            <p className="text-[10px] text-[oklch(60%_0.02_250)] truncate uppercase tracking-wider">
+              {user?.role}
+            </p>
+            <p className="text-xs text-[oklch(60%_0.02_250)] truncate mt-0.5">
               {user?.email}
             </p>
           </div>

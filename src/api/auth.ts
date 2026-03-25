@@ -1,43 +1,52 @@
 import api from "./client";
 import type { AuthResponse } from "../types";
 
-const normalizeRole = (r: any) => {
+/**
+ * Normalise role value from backend.
+ * Backend may return role as:
+ *   - a string: "student" | "admin" | "instructor"
+ *   - an object: { id: 2, name: "student", permissions: [] }
+ */
+const normalizeRole = (r: any): "ADMIN" | "INSTRUCTOR" | "STUDENT" => {
   if (!r) return "STUDENT";
-  const up = String(r).toUpperCase();
+  // Role object: { name: "student" }
+  const raw = typeof r === "object" ? r.name ?? "" : r;
+  const up = String(raw).toUpperCase();
   return up === "ADMIN" || up === "INSTRUCTOR" || up === "STUDENT"
     ? up
     : "STUDENT";
 };
 
-const mapAuthResponse = (data: any): AuthResponse => {
-  const user = data.user || data.user_data || data.userInfo || {};
+export const mapAuthResponse = (data: any): AuthResponse => {
+  // Defensive check: sometimes data might be the flat object, sometimes nested
+  const userData = data.user || data.user_data || data.userInfo || data;
+
+  console.log('[mapAuthResponse] Raw input data:', data);
+  console.log('[mapAuthResponse] Extracted user data:', userData);
+
   return {
-    accessToken: data.access_token ?? data.accessToken,
-    refreshToken: data.refresh_token ?? data.refreshToken,
+    accessToken: data.access_token ?? data.accessToken ?? data.token ?? "",
+    refreshToken: data.refresh_token ?? data.refreshToken ?? "",
     user: {
-      id: String(user.id ?? user._id ?? ""),
-      email: user.email ?? user.username ?? "",
-      name: user.name ?? user.username ?? "",
-      role: normalizeRole(user.role ?? user.user_role ?? user.role_name ?? ""),
+      id: String(userData.id ?? userData._id ?? ""),
+      email: userData.email ?? userData.username ?? "",
+      name: userData.username ?? userData.name ?? userData.displayName ?? userData.email ?? "",
+      username: userData.username ?? userData.name ?? userData.displayName ?? "",
+      role: normalizeRole(userData.role ?? userData.user_role ?? userData.role_name),
+      avatarUrl: userData.avatarUrl ?? userData.avatar_url ?? undefined,
     },
   };
 };
 
 export const authService = {
-  login: async (email: string, password: string): Promise<AuthResponse> => {
-    const response = await api.post("/auth/login", { email, password });
-    return mapAuthResponse(response.data);
+  /** Redirect browser to backend Google OAuth endpoint */
+  loginWithGoogle: () => {
+    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`;
   },
-  register: async (
-    email: string,
-    password: string,
-    name: string
-  ): Promise<AuthResponse> => {
-    const payload: any = { email, password };
-    // backend may expect `username`; include both `name` and `username` to be safe
-    payload.name = name;
-    payload.username = name;
-    const response = await api.post("/auth/register", payload);
+
+  /** Exchange the code/token returned by the backend after Google callback */
+  handleGoogleCallback: async (params: URLSearchParams): Promise<AuthResponse> => {
+    const response = await api.get(`/auth/google/callback?${params.toString()}`);
     return mapAuthResponse(response.data);
   },
 };
