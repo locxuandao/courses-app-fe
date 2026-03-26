@@ -25,8 +25,7 @@ const AuthCallback = () => {
           user,
         };
 
-        setLoginData(loginData);
-        setTokens({ username: user?.username });
+        setTokens(loginData);
         navigate("/");
       } catch (error) {
         console.error("Failed to parse user data", error);
