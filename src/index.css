@@ -1,16 +1,18 @@
 @import "tailwindcss";
 
-:root {
-  --bg: #fff;
+@theme inline {
+  --font-sans: "Plus Jakarta Sans", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-playfair: "Playfair Display", serif;
+  --font-mono: ui-monospace, Consolas, monospace;
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-
-
+  --color-primary: #007cc3;
+  --color-secondary: #f0f6fb;
+  --color-text-primary: #0d2d4a;
+  --color-text-secondary: #4a6a85;
 }
 
-body {
-  margin: 0;
+@layer base {
+  body {
+    @apply font-sans text-text-primary bg-secondary;
+  }
 }
