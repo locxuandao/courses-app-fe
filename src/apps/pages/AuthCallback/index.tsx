@@ -12,8 +12,8 @@ const AuthCallback = () => {
   const setLoginData = useAppControlStore((state) => state.setLoginData);
 
   useEffect(() => {
-    const accessToken = searchParams.get("access_token");
-    const refreshToken = searchParams.get("refresh_token");
+    const accessToken = searchParams.get("accessToken");
+    const refreshToken = searchParams.get("refreshToken");
     const userStr = searchParams.get("user");
 
     if (accessToken && refreshToken && userStr) {
